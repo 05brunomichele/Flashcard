@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcard App V9 - Algoritmo Guidato</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1>Flashcard App</h1>
+        <p>Doppio click su una card nell'esplora file per modificarla rapidamente</p>
+    </header>
+
+    <main>
+        <!-- Sezione 1: Aggiungi Flashcard -->
+        <div class="container" id="add-import-section">
+            <h2>1. Aggiungi Flashcard</h2>
+            <div class="subsection">
+                <h3>Aggiunta Rapida</h3>
+                <p class="info-text">Scrivi il testo e incolla le immagini (Ctrl+V) direttamente nei campi. Scegli la cartella di destinazione o creane una nuova.</p>
+                <form id="add-card-form">
+                    <div class="form-group">
+                        <label for="add-card-folder-select">Cartella di Destinazione:</label>
+                        <select id="add-card-folder-select">
+                            <option value="/Inbox/">/Inbox/</option>
+                            <option value="__NEW__">** Nuova Cartella... **</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="new-folder-input-container" style="display: none;">
+                        <label for="new-folder-path">Percorso Nuova Cartella:</label>
+                        <input type="text" id="new-folder-path" placeholder="Es: /Materia/Argomento/">
+                    </div>
+
+                     <div class="form-group">
+                        <label for="new-card-question">Domanda:</label>
+                        <div class="editor-toolbar">
+                            <button type="button" class="format-btn" data-command="bold" title="Grassetto"><b>B</b></button>
+                            <button type="button" class="format-btn" data-command="italic" title="Corsivo"><i>I</i></button>
+                            <button type="button" class="format-btn" data-command="underline" title="Sottolineato"><u>U</u></button>
+                            <button type="button" class="format-btn" data-command="formatBlock" data-value="H1" title="Titolo 1">H1</button>
+                            <button type="button" class="format-btn" data-command="formatBlock" data-value="H2" title="Titolo 2">H2</button>
+                            <button type="button" class="format-btn" data-command="formatBlock" data-value="H3" title="Titolo 3">H3</button>
+                            <button type="button" class="format-btn" data-command="insertUnorderedList" title="Elenco Puntato">●</button>
+                            <button type="button" class="format-btn" data-command="insertHorizontalRule" title="Linea Orizzontale">-</button>
+                        </div>
+                        <div id="new-card-question" class="editable-textarea" contenteditable="true" placeholder="Scrivi qui la domanda..."></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-card-answer">Risposta:</label>
+                        <div class="editor-toolbar">
+                            <button type="button" class="format-btn" data-command="bold" title="Grassetto"><b>B</b></button>
+                            <button type="button" class="format-btn" data-command="italic" title="Corsivo"><i>I</i></button>
+                            <button type="button" class="format-btn" data-command="underline" title="Sottolineato"><u>U</u></button>
+                            <button type="button" class="format-btn" data-command="formatBlock" data-value="H1" title="Titolo 1">H1</button>
+                            <button type="button" class="format-btn" data-command="formatBlock" data-value="H2" title="Titolo 2">H2</button>
+                            <button type="button" class="format-btn" data-command="formatBlock" data-value="H3" title="Titolo 3">H3</button>
+                            <button type="button" class="format-btn" data-command="insertUnorderedList" title="Elenco Puntato">●</button>
+                            <button type="button" class="format-btn" data-command="insertHorizontalRule" title="Linea Orizzontale">-</button>
+                        </div>
+                        <div id="new-card-answer" class="editable-textarea" contenteditable="true" placeholder="Scrivi qui la risposta..."></div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Aggiungi Card</button>
+                    <p id="add-card-feedback" class="feedback"></p>
+                </form>
+            </div>
+        </div>
+
+        <!-- Sezione 2: Esplora e Gestisci le Tue Flashcard -->
+        <div class="container" id="view-cards-section">
+            <h2>2. Esplora e Gestisci Flashcard</h2>
+             <p>Naviga tra le cartelle, sposta (trascina) o elimina le card. <strong>Fai doppio click su una card per modificarla.</strong></p>
+            <p id="view-cards-feedback" class="feedback"></p>
+            <div id="explorer-view-container" class="explorer-container">
+                <p class="loading-message">Caricamento struttura cartelle...</p>
+            </div>
+        </div>
+
+        <!-- Sezione 3: Modifica Testuale e Backup -->
+        <div class="container" id="edit-advanced-section">
+             <h2>3. Modifica Testuale e Backup</h2>
+             <p>Modifica in massa il testo o usa i pulsanti sottostanti per esportare/importare l'intero database.</p>
+             <p><strong>Formato per riga:</strong> <code>ID##Percorso##Domanda##Risposta@@Data</code></p>
+             
+             <div class="io-buttons-container">
+                <button id="export-db-btn" class="btn btn-secondary">Esporta Tutto in .txt</button>
+                <!-- NUOVO PULSANTE -->
+                <button id="export-selection-btn" class="btn btn-primary">Esporta Selezione...</button>
+                <button id="import-db-btn" class="btn btn-success">Importa da .txt</button>
+                <input type="file" id="import-file-input" accept=".txt,text/plain" style="display: none;">
+             </div>
+
+             <div class="form-group">
+                 <label for="advanced-edit-area">Contenuto del Database:</label>
+                 <textarea id="advanced-edit-area" rows="15" placeholder="Le tue carte appariranno qui..."></textarea>
+             </div>
+             <button id="save-advanced-edit-btn" class="btn btn-warning">Salva Modifiche dal Testo</button>
+             <p id="advanced-edit-feedback" class="feedback"></p>
+        </div>
+
+        <!-- Sezione 4: Statistiche e Avvio Ripasso -->
+        <div class="container" id="stats-section">
+            <h2>4. Statistiche e Ripasso</h2>
+            <div class="stats-grid">
+                <p>Scadute: <span id="review-count">0</span></p>
+                <p>In Attesa: <span id="learned-count">0</span></p>
+                <p>Totale: <span id="total-count">0</span></p>
+            </div>
+
+            <!-- Ripasso Attivo -->
+            <div class="subsection">
+                <h3>Ripasso Attivo (Spaced Repetition)</h3>
+                <div class="review-options-container">
+                     <div class="form-group">
+                        <label for="review-folder-select">Seleziona Cartella per Ripasso:</label>
+                        <select id="review-folder-select" class="folder-select">
+                            <option value="__ALL__">Tutte le Cartelle</option>
+                        </select>
+                     </div>
+                     <div class="form-group">
+                        <label for="review-card-count">N. di Carte:</label>
+                        <select id="review-card-count">
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="15">15</option>
+                            <option value="20">20</option>
+                            <option value="__ALL__" selected>Tutte</option>
+                        </select>
+                     </div>
+                     <div class="form-group checkbox-group">
+                        <input type="checkbox" id="review-include-subfolders" checked>
+                        <label for="review-include-subfolders">Includi Sottocartelle</label>
+                     </div>
+                </div>
+                 <div class="review-options">
+                     <label><input type="radio" name="order-mode" value="sequential" checked> Ordine Scadenza</label>
+                     <label><input type="radio" name="order-mode" value="random"> Ordine Casuale</label>
+                     <label><input type="radio" name="order-mode" value="guided"> Algoritmo Guidato</label>
+                 </div>
+                <div class="review-preview-container">
+                    <label>Carte in questa sessione di ripasso:</label>
+                    <div id="review-preview-list" class="upcoming-cards-list">
+                        <p class="empty-list-message">Seleziona una cartella per vedere le carte da ripassare.</p>
+                    </div>
+                </div>
+                <button id="start-review-btn" class="btn btn-success btn-large" disabled>Inizia Ripasso (<span id="review-btn-count">0</span> carte)</button>
+                <p id="review-start-feedback" class="feedback"></p>
+            </div>
+            
+            <!-- Ripasso Passivo (Mani Libere) -->
+            <div class="subsection">
+                <h3>Ripasso Passivo (Mani Libere)</h3>
+                <p class="info-text">Ascolta le tue flashcard (sempre 10 alla volta). Questa modalità non modifica le date di ripasso.</p>
+                <div id="hands-free-setup-container">
+                    <div class="review-options-container">
+                        <div class="form-group">
+                            <label for="hands-free-folder-select">Cartella:</label>
+                            <select id="hands-free-folder-select" class="folder-select">
+                                <option value="__ALL__">Tutte le Cartelle</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="hands-free-q-a-delay">Pausa D-R (sec):</label>
+                            <select id="hands-free-q-a-delay">
+                                <option value="3">3</option>
+                                <option value="5" selected>5</option>
+                                <option value="7">7</option>
+                                <option value="10">10</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="hands-free-next-card-delay">Pausa Successiva (sec):</label>
+                            <select id="hands-free-next-card-delay">
+                                <option value="3">3</option>
+                                <option value="5" selected>5</option>
+                                <option value="7">7</option>
+                                <option value="10">10</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="review-preview-container">
+                        <label>Carte in questa sessione di ascolto:</label>
+                        <div id="hands-free-preview-list" class="upcoming-cards-list">
+                            <p class="empty-list-message">Configura la sessione per vedere l'anteprima.</p>
+                        </div>
+                    </div>
+                    <button id="start-hands-free-btn" class="btn btn-primary btn-large" disabled>Avvia Ripasso Mani Libere (<span id="hands-free-btn-count">0</span> carte)</button>
+                </div>
+            </div>
+
+            <div class="next-review-info-container">
+                <h3>Prossime Revisioni</h3>
+                <div class="next-review-timer" id="next-review-timer-container">
+                    <p>Prossima carta tra:</p>
+                    <span id="next-review-timer">Nessuna carta in attesa.</span>
+                </div>
+                <label for="elenco404">Carte in attesa di ripasso:</label>
+                <div id="elenco404" class="upcoming-cards-list">
+                    <p class="empty-list-message">Nessuna carta programmata per il futuro.</p>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Sezione 5: Ripasso -->
+        <div class="container review-container" id="review-section" style="display: none;">
+             <h2>5. Ripasso in Corso</h2>
+             <button id="exit-review-btn" class="btn btn-danger btn-small exit-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/></svg> Interrompi
+             </button>
+            <div id="review-area">
+                <p class="review-status">Carta <span id="review-current-num">0</span> di <span id="review-total-in-session">0</span> (<span id="review-remaining">0</span> rimanenti)</p>
+                
+                <div id="card-display">
+                    <div id="card-question">[Domanda...]</div>
+                    <div id="card-answer" style="display: none;">[Risposta...]</div>
+                </div>
+                <button id="show-answer-btn" class="btn btn-warning">Mostra Risposta</button>
+                <div id="interval-buttons" style="display: none;">
+                    <p>Come la ricordavi?</p>
+                    <button class="interval-btn btn-subito" data-key="subito" title="Ripeti subito">Subito</button>
+                    <button class="interval-btn" data-key="15m">15m</button><button class="interval-btn" data-key="30m">30m</button><button class="interval-btn" data-key="45m">45m</button>
+                    <button class="interval-btn" data-key="1h">1h</button><button class="interval-btn" data-key="2h">2h</button><button class="interval-btn" data-key="3h">3h</button><button class="interval-btn" data-key="4h">4h</button><button class="interval-btn" data-key="5h">5h</button><button class="interval-btn" data-key="6h">6h</button><button class="interval-btn" data-key="8h">8h</button><button class="interval-btn" data-key="10h">10h</button><button class="interval-btn" data-key="12h">12h</button><button class="interval-btn" data-key="14h">14h</button><button class="interval-btn" data-key="16h">16h</button><button class="interval-btn" data-key="18h">18h</button><button class="interval-btn" data-key="20h">20h</button><button class="interval-btn" data-key="22h">22h</button>
+                    <button class="interval-btn" data-key="1d">1g</button><button class="interval-btn" data-key="2d">2g</button><button class="interval-btn" data-key="3d">3g</button><button class="interval-btn" data-key="4d">4g</button><button class="interval-btn" data-key="5d">5g</button><button class="interval-btn" data-key="6d">6g</button><button class="interval-btn" data-key="7d">7g</button><button class="interval-btn" data-key="10d">10g</button><button class="interval-btn" data-key="14d">14g</button><button class="interval-btn" data-key="17d">17g</button><button class="interval-btn" data-key="21d">21g</button><button class="interval-btn" data-key="24d">24g</button><button class="interval-btn" data-key="28d">28g</button><button class="interval-btn" data-key="31d">31g</button><button class="interval-btn" data-key="40d">40g</button><button class="interval-btn" data-key="50d">50g</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>Flashcard App &copy; 2023-2025 - Dati salvati localmente.</p>
+    </footer>
+
+    <!-- Finestra Modale per Modifica Card -->
+    <div id="modal-overlay" class="modal-overlay" style="display: none;"></div>
+    <div id="edit-card-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal-btn">&times;</span>
+            <h2>Modifica Flashcard</h2>
+            <form id="edit-card-form">
+                <input type="hidden" id="edit-card-id">
+                
+                <div class="form-group">
+                    <label for="edit-card-folder-select">Cartella:</label>
+                    <select id="edit-card-folder-select">
+                        <option value="__NEW__">** Nuova Cartella... **</option>
+                    </select>
+                </div>
+                <div class="form-group" id="edit-new-folder-container" style="display: none;">
+                    <label for="edit-new-folder-path">Percorso Nuova Cartella:</label>
+                    <input type="text" id="edit-new-folder-path" placeholder="Es: /NuovaMateria/">
+                </div>
+                
+                <div class="form-group" id="edit-review-date-container" style="display: none;">
+                    <label for="edit-review-date-input">Prossima Revisione:</label>
+                    <input type="datetime-local" id="edit-review-date-input">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-card-question">Domanda:</label>
+                    <div id="edit-card-question" class="editable-textarea" contenteditable="true"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-card-answer">Risposta:</label>
+                    <div id="edit-card-answer" class="editable-textarea" contenteditable="true"></div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-success">Salva Modifiche</button>
+                    <button type="button" class="btn btn-secondary cancel-edit-btn">Annulla</button>
+                </div>
+                <p id="edit-card-feedback" class="feedback"></p>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Schermata Modale per Ripasso Mani Libere -->
+    <div id="hands-free-section" class="hands-free-overlay" style="display: none;">
+        <button id="exit-hands-free-btn" class="btn btn-danger btn-small exit-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/></svg> Interrompi
+        </button>
+        <div class="hands-free-container">
+            <div class="hands-free-column">
+                <h3>Precedenti</h3>
+                <div id="hands-free-previous-list" class="hands-free-list"></div>
+            </div>
+            <div class="hands-free-column-main">
+                <p id="hands-free-status">In attesa...</p>
+                <div id="hands-free-card-display">
+                    <div id="hands-free-card-question"></div>
+                    <div id="hands-free-card-answer" style="display: none;"></div>
+                </div>
+            </div>
+            <div class="hands-free-column">
+                <h3>Prossime</h3>
+                <div id="hands-free-upcoming-list" class="hands-free-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NUOVA FINESTRA MODALE PER ESPORTAZIONE SELEZIONATA -->
+    <div id="export-selection-modal-overlay" class="modal-overlay" style="display: none;"></div>
+    <div id="export-selection-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal-btn">&times;</span>
+            <h2>Esporta Cartelle Selezionate</h2>
+            <p class="info-text">Seleziona le cartelle che vuoi esportare. Tutte le sottocartelle verranno incluse automaticamente.</p>
+            <div id="export-folder-tree" class="explorer-container">
+                <!-- L'albero delle cartelle verrà inserito qui dal JavaScript -->
+            </div>
+            <div class="modal-actions">
+                <button type="button" id="confirm-export-selection-btn" class="btn btn-success">Esporta Selezionate</button>
+                <button type="button" class="btn btn-secondary cancel-export-btn">Annulla</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="script.js"></script>
+</body>
+</html>
